@@ -1,0 +1,10 @@
+# Arquivos do Python que não precisam subir
+__pycache__/
+*.pyc
+
+# Ambiente Virtual (muito pesado, a nuvem cria o dela)
+.venv/
+env/
+
+# SEGURANÇA (O mais importante)
+.streamlit/secrets.toml

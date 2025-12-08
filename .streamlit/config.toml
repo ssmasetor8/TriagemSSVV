@@ -1,0 +1,3 @@
+[theme]
+base = "dark"             # <--- Isso garante o fundo preto/cinza chique
+primaryColor = "#007bff"  # <--- Isso garante os checkboxes e seleção em Azul
