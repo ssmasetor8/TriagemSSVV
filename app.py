@@ -239,7 +239,7 @@ for k in checks:
 
 # --- 7. TELA ---
 if not st.session_state["logado"]:
-    st.markdown("<h1 style='text-align: center;'>🩺 Triagem SSVV</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🩺 Triagem SSVV</h2>", unsafe_allow_html=True)
     st.divider()
     with st.container():
         reg = st.text_input("Registro")
