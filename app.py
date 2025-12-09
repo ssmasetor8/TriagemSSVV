@@ -14,7 +14,15 @@ st.set_page_config(page_title="SSMA SSVV", page_icon="🩺", layout="centered", 
 st.markdown("""
     <style>
         /* Reset e Configurações de Borda (Mobile) */
-        #MainMenu, footer, header { visibility: hidden; } 
+        /* Reset e Configurações de Borda (Mobile) */
+        #MainMenu {visibility: hidden;} /* Esconde os 3 pontinhos */
+        footer {visibility: hidden;}    /* Esconde o rodapé 'Made with Streamlit' */
+        header {visibility: hidden;}    /* Esconde a barra colorida superior */
+
+        /* ESCONDE O BOTÃO DE DEPLOY/GITHUB ESPECÍFICO */
+        .stAppDeployButton {
+        display: none;
+        }
         .block-container {padding-top: 1rem; padding-bottom: 5rem;}
 
         /* 1. FUNDOS E CORES GERAIS */
@@ -35,16 +43,22 @@ st.markdown("""
         /* 3. CONTROLES ESPECÍFICOS (Selectbox e Number Input) */
         /* Oculta botões +/- nos campos numéricos */
         [data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"] { display: none; }
-
-        /* FIX DO FUNDO DO MENU SELECTBOX (AZUL PETRÓLEO) */
-        div[data-baseweb="popover"], div[data-baseweb="popover"] div[role="option"] {
-            background-color: #042A4A !important; 
-            color: white !important;
+        
+        /* FIX DO FUNDO DO MENU DE OPÇÕES (Troca para Cinza Escuro para Contraste) */
+        div[data-baseweb="popover"] {
+        background-color: #262730 !important; /* Cinza Escuro para separar do fundo azul */
+        border: 1px solid #007bff;
         }
 
-        /* FIX FINAL: Oculta o texto "Press Enter to submit form" */
-        div[data-testid="stForm"] > div > p { 
-             display: none !important; 
+        /* Cor dos itens da lista */
+        div[data-baseweb="popover"] div[role="option"] {
+        background-color: #262730 !important; 
+        color: white !important;
+        }
+
+        /* Cor de seleção no mouse */
+        div[data-baseweb="popover"] div[role="option"]:hover {
+        background-color: #007bff !important; /* Azul Claro no hover */
         }
 
         /* 4. BOTÕES E FORM */
@@ -83,7 +97,7 @@ LISTA_COMUNS = sorted([
 ])
 
 areas_normais = sorted([
-    "Manutenção", "Cozinha", "Limpeza", "Porteiros",
+    "Manutenção", "Cozinha", "Limpeza",
     "Administração",
 ])
 LISTA_AREAS = areas_normais + ["Outros"]
