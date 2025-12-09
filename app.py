@@ -453,15 +453,16 @@ st.markdown("""
         body { background-color: #0D2C50; }
 
         /* --- FONTES MAIORES --- */
+        label { font-weight: normal !important; }
         html, body, p, label, .stMarkdown {
-            font-size: 18px !important;
+            font-size: 20px !important;
         }
 
         /* COR DO TEXTO DENTRO DOS INPUTS (Azul Claro para destaque) */
         input, .stSelectbox div[data-baseweb="select"] div {
-            font-size: 18px !important;
+            font-size: 20px !important;
             color: #63b3ed !important; /* Azul claro */
-            font-weight: bold;
+            font-weight: normal;
         }
 
         /* ESCONDER BOTÕES +/- NOS NÚMEROS (Limpa o visual) */
@@ -481,7 +482,7 @@ st.markdown("""
         /* --- BOTÃO SALVAR --- */
         [data-testid="stFormSubmitButton"] > button {
             height: 4rem;
-            font-size: 22px !important;
+            font-size: 20px !important;
             background-color: #004494 !important;
             color: white !important;
             margin-top: 1rem;
