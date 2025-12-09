@@ -294,11 +294,11 @@ else:
     st.divider()
 
     if st.session_state["pagina_gestor"]:
-        st.markdown("## ⚙️ Painel do Gestor")
+        st.markdown("### ⚙️ Gestão")
         if st.button("⬅️ Voltar"):
             st.session_state.pagina_gestor = False
             st.rerun()
-        tab1, tab2, tab3 = st.tabs(["🆕 Voluntários", "🏥 Profissionais", "📥 Relatórios"])
+        tab1, tab2, tab3 = st.tabs(["🆕 Voluntários", "👩‍⚕️ Profissionais", "📥 Relatórios"])
 
         with tab1:
             st.text_input("Nome Completo", key="novo_vol_nome")
