@@ -404,52 +404,53 @@ import io
 st.set_page_config(page_title="Triagem SSVV", page_icon="🩺", layout="centered", initial_sidebar_state="collapsed")
 
 #--- 2. CSS
-# --- 2. CSS (A SOLUÇÃO AGRESSIVA PARA O CONTRASTE) ---
+
+# --- 2. CSS (ESTILO LIMPO E CORRIGIDO) ---
 st.markdown("""
     <style>
-        #MainMenu {visibility: visible;} 
-        footer {visibility: hidden;}
-        header {visibility: hidden;} 
+        /* Reset e Configurações de Borda (Mobile) */
+        #MainMenu, footer, header { visibility: hidden; } 
         .block-container {padding-top: 1rem; padding-bottom: 5rem;}
 
-        /* --- FONTES MAIORES --- */
-        html, body, p, label, .stMarkdown {
-            font-size: 18px !important;
-        }
+        /* 1. FUNDOS E CORES GERAIS */
+        body { background-color: #0D2C50; } /* Fundo Azul Petróleo Escuro */
 
-        /* --- COR DE FUNDO AZUL PETRÓLEO (Final) --- */
-        body { 
-            background-color: #0D2C50 !important; /* Fundo do Corpo do App */
-        }
+        /* 2. FONTES E RÓTULOS */
+        /* Define a fonte base e remove negrito padrão dos labels */
+        html, body, p, .stMarkdown { font-size: 18px !important; } 
+        label { font-weight: normal !important; font-size: 20px !important; } /* Aumenta o rótulo para 20px */
 
-        /* --- FIX: SELECTBOX TEIMOSO (Targeting the UL List) --- */
-        /* Garante que o container flutuante e a lista de opções fiquem Petróleo */
-        div[data-baseweb="popover"] {
-            background-color: #042A4A !important; /* Azul Petróleo Forte */
-            border: none !important;
-        }
-        div[data-baseweb="popover"] > div > ul {
-            background-color: #042A4A !important; /* Targeta a UL que segura a lista */
-            color: white !important;
-        }
-
-        /* Garante que o texto de input e opções sejam brancos/azuis claros */
-        input, .stSelectbox div {
+        /* Texto dentro dos campos (Azul Claro) */
+        input, .stSelectbox div[data-baseweb="select"] div {
             font-size: 18px !important;
             color: #63b3ed !important; 
+            font-weight: normal; /* Garante que o texto digitado não fique negrito */
         }
 
-        /* Garante a cor de seleção quando o mouse passa */
-        div[data-baseweb="popover"] div[role="option"] {
+        /* 3. CONTROLES ESPECÍFICOS (Selectbox e Number Input) */
+        /* Oculta botões +/- nos campos numéricos */
+        [data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"] { display: none; }
+
+        /* FIX DO FUNDO DO MENU SELECTBOX (AZUL PETRÓLEO) */
+        div[data-baseweb="popover"], div[data-baseweb="popover"] div[role="option"] {
+            background-color: #042A4A !important; 
             color: white !important;
         }
-        div[data-baseweb="popover"] div[role="option"]:hover {
-            background-color: #004494 !important; /* Azul escuro no hover */
+
+        /* FIX FINAL: Oculta o texto "Press Enter to submit form" */
+        div[data-testid="stForm"] > div > p { 
+             display: none !important; 
         }
 
-        /* --- BOTÕES E LAYOUT --- (Mantidos)
-        .stButton > button { ... }
-        [data-testid="stFormSubmitButton"] > button { ... }
+        /* 4. BOTÕES E FORM */
+        .stButton > button {
+            width: 100%; height: 3.5rem; font-size: 20px !important; font-weight: bold;
+            background-color: #007bff !important; color: white !important;
+            border-radius: 8px; border: none;
+        }
+        [data-testid="stFormSubmitButton"] > button {
+            height: 4rem; background-color: #004494 !important; 
+        }
     </style>
 """, unsafe_allow_html=True)
 
