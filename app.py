@@ -2,6 +2,8 @@ import streamlit as st
 from supabase import create_client, Client
 import time
 from datetime import datetime, date
+import csv
+import io
 
 # --- 1. CONFIGURAÇÃO ---
 st.set_page_config(page_title="Triagem SSVV", page_icon="🩺", layout="centered", initial_sidebar_state="collapsed")
@@ -16,10 +18,10 @@ st.markdown("""
 
         /* --- FONTES MAIORES --- */
         html, body, p, label, .stMarkdown {
-            font-size: 18px !important;
+            font-size: 20px !important;
         }
         input, .stSelectbox div {
-            font-size: 18px !important;
+            font-size: 20px !important;
         }
 
         /* --- BOTÃO PADRÃO --- */
@@ -58,6 +60,7 @@ except:
     st.error("❌ Erro no secrets.toml")
     st.stop()
 
+# --- LISTAS ---
 LISTA_COMUNS = sorted([
     "Cidade Ipava", "Jardim Amália", "Jardim Ângela", "Jardim Aracati",
     "Jardim Capão Redondo", "Jardim Célia", "Jardim Das Flores",
@@ -73,12 +76,12 @@ LISTA_COMUNS = sorted([
 
 areas_normais = sorted([
     "Manutenção", "Cozinha", "Limpeza", "Porteiros",
-    "Administração", "Ministerio"
+    "Administração",
 ])
 LISTA_AREAS = areas_normais + ["Outros"]
 
 
-# --- 4. FUNÇÕES ---
+# --- 4. FUNÇÕES GERAIS ---
 def tentar_login(registro, senha):
     try:
         resp = supabase.table("tabela_profissional").select("*").eq("registro_profissional", registro).execute()
@@ -101,23 +104,91 @@ def calcular_idade(data_nasc_str):
         return 0
 
 
-# --- 5. O GATILHO DE SALVAR (Callback) ---
+def gerar_csv_corrigido():
+    """Gera CSV compatível com Excel Brasil"""
+    try:
+        resp = supabase.table("tabela_registros").select("*").order("id", desc=True).execute()
+        dados = resp.data
+        if not dados: return None
+
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=dados[0].keys(), delimiter=';')
+        writer.writeheader()
+        writer.writerows(dados)
+        return output.getvalue().encode('utf-8-sig')
+    except Exception as e:
+        st.error(f"Erro CSV: {e}")
+        return None
+
+
+# --- CALLBACKS DE CADASTRO (GESTOR) ---
+def cadastrar_voluntario_callback():
+    nome = st.session_state.novo_vol_nome
+    nasc = st.session_state.novo_vol_nasc
+    if not nome:
+        st.toast("Preencha o nome!", icon="⚠️")
+        return
+    try:
+        dados = {"voluntario_nome": nome, "data_nascimento": str(nasc)}
+        supabase.table("tabela_voluntario").insert(dados).execute()
+        st.toast(f"Cadastrado: {nome}", icon="✅")
+        if "dados_voluntarios" in st.session_state: del st.session_state["dados_voluntarios"]
+        st.session_state.novo_vol_nome = ""
+    except Exception as e:
+        st.error(f"Erro: {e}")
+
+
+def cadastrar_profissional_callback():
+    reg = st.session_state.novo_prof_reg
+    nome = st.session_state.novo_prof_nome
+    admin_bool = st.session_state.novo_prof_admin
+    if not reg or not nome:
+        st.toast("Preencha Registro e Nome!", icon="⚠️")
+        return
+    try:
+        dados = {
+            "registro_profissional": reg,
+            "nome_profissional": nome,
+            "admin": admin_bool
+        }
+        supabase.table("tabela_profissional").insert(dados).execute()
+        st.toast(f"Profissional {nome} cadastrado!", icon="✅")
+        st.session_state.novo_prof_reg = ""
+        st.session_state.novo_prof_nome = ""
+        st.session_state.novo_prof_admin = False
+    except Exception as e:
+        st.error(f"Erro: {e}")
+
+
+# --- 5. O GATILHO DE SALVAR (Callback com Validação) ---
 def salvar_callback():
     try:
-        # Validações
-        if st.session_state.selectbox_nome == "Selecione...":
-            st.toast("⚠️ Selecione um VOLUNTÁRIO!", icon="⚠️")
-            return
-
+        # --- VALIDAÇÕES ---
         if st.session_state.selectbox_comum == "Selecione...":
-            st.toast("⚠️ Selecione a CASA DE ORAÇÃO!", icon="⚠️")
+            st.toast("⚠️ Selecione a CASA DE ORAÇÃO!", icon="🛑")
             return
-
+        if st.session_state.selectbox_nome == "Selecione...":
+            st.toast("⚠️ Selecione um VOLUNTÁRIO!", icon="🛑")
+            return
         if st.session_state.selectbox_area == "Selecione...":
-            st.toast("⚠️ Selecione a ÁREA/SETOR!", icon="⚠️")
+            st.toast("⚠️ Selecione a ÁREA/SETOR!", icon="🛑")
             return
 
-        # Prepara Dados
+        # Travas de Obrigatórios
+        if st.session_state.pas is None or st.session_state.pad is None:
+            st.toast("⚠️ A Pressão Arterial (PAS/PAD) é obrigatória!", icon="🛑")
+            return
+        if st.session_state.fc is None:
+            st.toast("⚠️ A Frequência Cardíaca é obrigatória!", icon="🛑")
+            return
+        if st.session_state.spo is None:
+            st.toast("⚠️ A Saturação (SpO2) é obrigatória!", icon="🛑")
+            return
+        if st.session_state.status is None:
+            st.toast("⚠️ Selecione se está APTO ou INAPTO!", icon="🛑")
+            return
+
+        # --- PREPARAÇÃO DOS DADOS ---
         dados = {
             "data_atendimento": str(st.session_state.data_atendimento),
             "registro_profissional": st.session_state.usuario['registro_profissional'],
@@ -139,25 +210,20 @@ def salvar_callback():
             "parecer": (True if st.session_state.status == "Apto" else False)
         }
 
-        # Salva
+        # --- SALVAR ---
         supabase.table("tabela_registros").insert(dados).execute()
-        st.toast(f"Salvo: {dados['voluntario_nome']}", icon="✅")
+        st.toast(f"✅ Salvo com sucesso: {dados['voluntario_nome']}", icon="💾")
 
-        # --- RESET INTELIGENTE ---
-
+        # --- RESET ---
         st.session_state.idx_nome = 0
-        st.session_state.idx_area = 0  # Reseta a área
-
-        # Força atualização visual
+        st.session_state.idx_area = 0
         st.session_state.selectbox_nome = "Selecione..."
         st.session_state.selectbox_area = "Selecione..."
 
-        # Limpa Números
         campos_none = ["pas", "pad", "fc", "spo", "fr", "dx", "obs", "status"]
         for c in campos_none:
             if c in st.session_state: st.session_state[c] = None
 
-        # Limpa Checkboxes
         campos_false = ["dormiu", "desjejum", "med_sono", "tontura", "aso", "intercor"]
         for c in campos_false:
             if c in st.session_state: st.session_state[c] = False
@@ -168,12 +234,11 @@ def salvar_callback():
 
 # --- 6. INICIALIZAÇÃO ---
 if "logado" not in st.session_state: st.session_state["logado"] = False
+if "pagina_gestor" not in st.session_state: st.session_state["pagina_gestor"] = False
 
 # Índices
 if "idx_nome" not in st.session_state: st.session_state["idx_nome"] = 0
 if "idx_area" not in st.session_state: st.session_state["idx_area"] = 0
-
-# Persistente
 if "selectbox_comum" not in st.session_state: st.session_state["selectbox_comum"] = "Selecione..."
 
 # Form Fields
@@ -185,13 +250,15 @@ for k in checks:
     if k not in st.session_state: st.session_state[k] = False
 
 # --- 7. TELA ---
+
+# === TELA 1: LOGIN ===
 if not st.session_state["logado"]:
     st.markdown("<h1 style='text-align: center;'>🩺 Triagem SSVV</h1>", unsafe_allow_html=True)
     st.divider()
     with st.container():
         reg = st.text_input("Registro")
         sen = st.text_input("Senha", type="password")
-        if st.button("ENTRAR"):
+        if st.button("Entrar"):
             user = tentar_login(reg, sen)
             if user:
                 st.session_state.logado = True
@@ -199,79 +266,129 @@ if not st.session_state["logado"]:
                 st.rerun()
             else:
                 st.error("Inválido.")
+
+# === TELA 2: ÁREA LOGADA ===
 else:
-    c1, c2 = st.columns([3, 1])
-    c1.write(f"Olá, **{st.session_state.usuario['nome_profissional']}**, a paz de Deus !!!")
-    if c2.button("Sair"):
-        st.session_state.logado = False
-        st.rerun()
+    is_admin = st.session_state.usuario.get('admin', False)
+
+    if is_admin:
+        c1, c2, c3 = st.columns([2, 1, 1])
+    else:
+        c1, c3 = st.columns([3, 1])
+
+    with c1:
+        st.write(f"Olá, **{st.session_state.usuario['nome_profissional']}**, a paz de Deus !!!")
+
+    if is_admin:
+        with c2:
+            if st.button("⚙️ Gestor"):
+                st.session_state.pagina_gestor = True
+                st.rerun()
+
+    with c3:
+        if st.button("⬅️ Sair"):
+            st.session_state.logado = False
+            st.session_state.pagina_gestor = False
+            st.rerun()
+
     st.divider()
 
-    if "dados_voluntarios" not in st.session_state:
-        try:
-            resp = supabase.table("tabela_voluntario").select("voluntario_nome, data_nascimento").execute()
-            st.session_state["dados_voluntarios"] = {d['voluntario_nome']: d['data_nascimento'] for d in resp.data}
-        except:
-            st.session_state["dados_voluntarios"] = {}
+    # === SUB-TELA: PAINEL GESTOR ===
+    if st.session_state["pagina_gestor"]:
+        st.markdown("## ⚙️ Painel do Gestor")
+        if st.button("⬅️ Voltar"):
+            st.session_state.pagina_gestor = False
+            st.rerun()
 
-    lista = sorted(list(st.session_state["dados_voluntarios"].keys()))
+        tab1, tab2, tab3 = st.tabs(["🆕 Voluntários", "🏥 Profissionais", "📥 Relatórios"])
 
-    st.markdown("### 👷‍♂️️ Identificação Voluntário")
+        with tab1:
+            st.text_input("Nome Completo", key="novo_vol_nome")
+            st.date_input("Data Nascimento", value=date(1990, 1, 1), format="DD/MM/YYYY", key="novo_vol_nasc")
+            # ADICIONEI KEY UNICA AQUI PARA CORRIGIR O ERRO
+            st.button("Cadastrar", on_click=cadastrar_voluntario_callback, key="btn_cad_vol")
 
-    # 1. Data
-    st.date_input("Data Atendimento", value=date.today(), format="DD/MM/YYYY", key="data_atendimento")
+        with tab2:
+            st.text_input("Registro (Somente números)", key="novo_prof_reg")
+            st.text_input("Nome do Profissional", key="novo_prof_nome")
+            st.checkbox("É Administrador?", key="novo_prof_admin")
+            # ADICIONEI KEY UNICA AQUI TAMBEM
+            st.button("Cadastrar", on_click=cadastrar_profissional_callback, key="btn_cad_prof")
 
-    # 2. Casa de Oração
-    st.selectbox("Casa de Oração", ["Selecione..."] + LISTA_COMUNS, key="selectbox_comum")
+        with tab3:
+            st.info("Baixe a planilha completa.")
+            csv_data = gerar_csv_corrigido()
+            if csv_data:
+                hoje = datetime.now().strftime("%d-%m-%Y_%Hh%M")
+                st.download_button(
+                    label="📥 Baixar Planilha (Excel)",
+                    data=csv_data,
+                    file_name=f"triagem_{hoje}.csv",
+                    mime="text/csv"
+                )
 
-    # 3. Nome
-    nome = st.selectbox(
-        "Nome Voluntário",
-        ["Selecione..."] + lista,
-        index=st.session_state["idx_nome"],
-        key="selectbox_nome"
-    )
+    # === SUB-TELA: TRIAGEM (A ORIGINAL) ===
+    else:
+        if "dados_voluntarios" not in st.session_state:
+            try:
+                resp = supabase.table("tabela_voluntario").select("voluntario_nome, data_nascimento").execute()
+                st.session_state["dados_voluntarios"] = {d['voluntario_nome']: d['data_nascimento'] for d in resp.data}
+            except:
+                st.session_state["dados_voluntarios"] = {}
 
-    # --- CONDIÇÃO: SÓ MOSTRA SELECIONAR NOME ---
-    if nome != "Selecione...":
-        # 4. Área/Setor (Agora aparece aqui dentro)
-        st.selectbox(
-            "Área / Setor",
-            ["Selecione..."] + LISTA_AREAS,
-            index=st.session_state["idx_area"],
-            key="selectbox_area"
+        lista = sorted(list(st.session_state["dados_voluntarios"].keys()))
+
+        st.markdown("### 👷‍♂️️ Identificação Voluntário")
+
+        st.date_input("Data Atendimento", value=date.today(), format="DD/MM/YYYY", key="data_atendimento")
+        st.selectbox("Casa de Oração", ["Selecione..."] + LISTA_COMUNS, key="selectbox_comum")
+
+        nome = st.selectbox(
+            "Nome Voluntário",
+            ["Selecione..."] + lista,
+            index=st.session_state["idx_nome"],
+            key="selectbox_nome"
         )
 
-        d_nasc = st.session_state["dados_voluntarios"].get(nome)
-        idade = calcular_idade(d_nasc)
-        st.session_state["idade_temp"] = idade
-        st.info(f"🎂 Idade Voluntário: **{idade} anos**")
+        if nome != "Selecione...":
+            st.selectbox(
+                "Área / Setor",
+                ["Selecione..."] + LISTA_AREAS,
+                index=st.session_state["idx_area"],
+                key="selectbox_area"
+            )
 
-        with st.form("form_triagem"):
-            st.markdown("### 🩺 Sinais Vitais")
-            c1, c2, c3 = st.columns(3)
-            st.number_input("PA (PAS)", 0, 300, step=1, value=None, placeholder="ex.120", key="pas")
-            st.number_input("PAD (PAD)", 0, 200, step=1, value=None, placeholder="ex.80", key="pad")
-            st.number_input("Freq. Cardíaca (bpm)", 0, 250, step=1, value=None, placeholder="ex.70", key="fc")
+            d_nasc = st.session_state["dados_voluntarios"].get(nome)
+            idade = calcular_idade(d_nasc)
+            st.session_state["idade_temp"] = idade
+            st.info(f"🎂 Idade Voluntário: **{idade} anos**")
 
-            c4, c5, c6 = st.columns(3)
-            st.number_input("Saturação (SpO2)", 0, 100, step=1, value=None, placeholder="ex.96", key="spo")
-            st.number_input("Freq. Respiratória", 0, 100, step=1, value=None, placeholder="ex.22", key="fr")
-            st.number_input("Dextro", 0, 600, step=1, value=None, placeholder="ex.120", key="dx")
+            with st.form("form_triagem"):
+                st.markdown("### 🩺 Sinais Vitais")
+                c1, c2, c3 = st.columns(3)
+                st.number_input("PA (PAS) *", 0, 300, step=1, value=None, placeholder="ex. 120", key="pas")
+                st.number_input("PA (PAD) *", 0, 200, step=1, value=None, placeholder="ex. 80", key="pad")
+                st.number_input("Freq. Cardíaca (bpm) *", 0, 250, step=1, value=None, placeholder="ex. 70", key="fc")
 
-            st.markdown("### 📋 Avaliação")
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.checkbox("Dormiu bem?", key="dormiu")
-                st.checkbox("Fez desjejum?", key="desjejum")
-                st.checkbox("Usa medicação que causa sono?", key="med_sono")
-            with col_b:
-                st.checkbox("Tontura, dor de cabeça, mal estar ?", key="tontura")
-                st.checkbox("ASO em dia?", key="aso")
-                st.checkbox("Intercorrência na Triagem?", key="intercor")
+                c4, c5, c6 = st.columns(3)
+                st.number_input("Saturação (SpO2) *", 0, 100, step=1, value=None, placeholder="ex. 96", key="spo")
+                st.number_input("Freq. Respiratória", 0, 100, step=1, value=None, placeholder="ex. 22", key="fr")
+                st.number_input("Dextro", 0, 600, step=1, value=None, placeholder="ex. 120", key="dx")
 
-            st.text_area("Observações Gerais", key="obs")
-            st.markdown("### 👩‍⚕️ Parecer")
-            st.radio("Condição:", ["Apto", "Inapto"], horizontal=True, key="status")
+                st.markdown("### 📋 Avaliação")
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    st.checkbox("Dormiu bem?", key="dormiu")
+                    st.checkbox("Fez desjejum?", key="desjejum")
+                    st.checkbox("Uso de medicação que causa sono?", key="med_sono")
+                with col_b:
+                    st.checkbox("Tontura, dor de cabeça, mal estar ?", key="tontura")
+                    st.checkbox("ASO em dia (vigente)?", key="aso")
+                    st.checkbox("Intercorrência na Triagem?", key="intercor")
 
-            st.form_submit_button("💾 SALVAR REGISTRO", on_click=salvar_callback)
+                st.text_area("Descrever Intercorrencia / Observações", key="obs")
+
+                st.markdown("### 👩‍⚕️ Parecer")
+                st.radio("Condição para Atuação: *", ["Apto", "Inapto"], index=None, horizontal=True, key="status")
+
+                st.form_submit_button("💾 Salvar Registro", on_click=salvar_callback)
