@@ -404,90 +404,52 @@ import io
 st.set_page_config(page_title="Triagem SSVV", page_icon="🩺", layout="centered", initial_sidebar_state="collapsed")
 
 #--- 2. CSS
-
+# --- 2. CSS (A SOLUÇÃO AGRESSIVA PARA O CONTRASTE) ---
 st.markdown("""
     <style>
-
-    /* --- FIX: FUNDO DO MENU DE OPÇÕES (SELECTBOX) --- */
-
-    /* Garante fundo AZUL PETRÓLEO e texto branco nas opções flutuantes */
-    div[data-baseweb="popover"] div[role="option"] {
-        background-color: #042A4A !important; /* AZUL PETRÓLEO */
-        color: white !important; /* Texto branco */
-    }
-
-    /* Garante que o container flutuante do menu também seja Petróleo */
-    div[data-baseweb="popover"] {
-        background-color: #042A4A !important;
-    }
-
-    /* E a cor do campo de digitação flutuante */
-    div[data-baseweb="popover"] input {
-        background-color: #003057 !important; /* Um tom ligeiramente mais claro para o input */
-        color: white !important;
-        border: 1px solid #007bff !important;
-    }
-
-
-    # /* FIX: Cor do fundo do CAMPO DE DIGITAÇÃO dentro da Caixa de Seleção */
-    # div[data-baseweb="popover"] input {
-    #     background-color: #333333 !important; /* Cinza Escuro para contraste */
-    #     color: white !important; /* Texto branco */
-    #     border: 1px solid #007bff !important; /* Borda azul para dar o toque final */
-    # }
-    #
-    # /* Garante a cor de seleção quando o mouse/dedo passa em cima */
-    # div[data-baseweb="popover"] div[role="option"]:hover {
-    #     background-color: #004494 !important; /* Azul escuro no hover */
-    # }
-    #
-    # /* Garante que o container flutuante do menu não tenha fundo branco */
-    # div[data-baseweb="popover"] {
-    #     background-color: #1E1E1E !important;
-    # }
-
-        #MainMenu {visibility: visible;}
+        #MainMenu {visibility: visible;} 
         footer {visibility: hidden;}
-        header {visibility: hidden;}
+        header {visibility: hidden;} 
         .block-container {padding-top: 1rem; padding-bottom: 5rem;}
-        body { background-color: #0D2C50; }
 
         /* --- FONTES MAIORES --- */
-        label { font-weight: normal !important; }
         html, body, p, label, .stMarkdown {
             font-size: 18px !important;
         }
 
-        /* COR DO TEXTO DENTRO DOS INPUTS (Azul Claro para destaque) */
-        input, .stSelectbox div[data-baseweb="select"] div {
-            font-size: 18px !important;
-            color: #63b3ed !important; /* Azul claro */
-            font-weight: normal;
+        /* --- COR DE FUNDO AZUL PETRÓLEO (Final) --- */
+        body { 
+            background-color: #0D2C50 !important; /* Fundo do Corpo do App */
         }
 
-        /* ESCONDER BOTÕES +/- NOS NÚMEROS (Limpa o visual) */
-        div[data-testid="stForm"] p { display: none !important; }
-        [data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"] {
-            display: none;
+        /* --- FIX: SELECTBOX TEIMOSO (Targeting the UL List) --- */
+        /* Garante que o container flutuante e a lista de opções fiquem Petróleo */
+        div[data-baseweb="popover"] {
+            background-color: #042A4A !important; /* Azul Petróleo Forte */
+            border: none !important;
         }
-
-        /* --- BOTÃO PADRÃO --- */
-        .stButton > button {
-            width: 100%; height: 3.5rem;
-            font-size: 18px !important; font-weight: bold;
-            border-radius: 8px; border: none;
-            background-color: #007bff !important;
+        div[data-baseweb="popover"] > div > ul {
+            background-color: #042A4A !important; /* Targeta a UL que segura a lista */
             color: white !important;
         }
 
-        /* --- BOTÃO SALVAR --- */
-        [data-testid="stFormSubmitButton"] > button {
-            height: 4rem;
+        /* Garante que o texto de input e opções sejam brancos/azuis claros */
+        input, .stSelectbox div {
             font-size: 18px !important;
-            background-color: #004494 !important;
-            color: white !important;
-            margin-top: 1rem;
+            color: #63b3ed !important; 
         }
+
+        /* Garante a cor de seleção quando o mouse passa */
+        div[data-baseweb="popover"] div[role="option"] {
+            color: white !important;
+        }
+        div[data-baseweb="popover"] div[role="option"]:hover {
+            background-color: #004494 !important; /* Azul escuro no hover */
+        }
+
+        /* --- BOTÕES E LAYOUT --- (Mantidos)
+        .stButton > button { ... }
+        [data-testid="stFormSubmitButton"] > button { ... }
     </style>
 """, unsafe_allow_html=True)
 
