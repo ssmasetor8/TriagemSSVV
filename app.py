@@ -5,12 +5,10 @@ from datetime import datetime, date
 import csv
 import io
 
-# --- 1. CONFIGURAÇÃO ---
+# 1. CONFIGURAÇÃO
 st.set_page_config(page_title="SSMA SSVV", page_icon="🩺", layout="centered", initial_sidebar_state="collapsed")
 
-#--- 2. CSS
-
-# --- 2. CSS (ESTILO LIMPO E CORRIGIDO) ---
+# 2. CSS
 st.markdown("""
     <style>
         /* Reset e Configurações de Borda (Mobile) */
@@ -73,7 +71,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. CONEXÃO ---
+# 3. CONEXÃO
 try:
     url = st.secrets["SUPABASE_URL"]
     key = st.secrets["SUPABASE_KEY"]
@@ -82,7 +80,7 @@ except:
     st.error("❌ Erro no secrets.toml")
     st.stop()
 
-# --- LISTAS ---
+# LISTAS
 LISTA_COMUNS = sorted([
     "Cidade Ipava", "Jardim Amália", "Jardim Ângela", "Jardim Aracati",
     "Jardim Capão Redondo", "Jardim Célia", "Jardim Das Flores",
@@ -103,7 +101,7 @@ areas_normais = sorted([
 LISTA_AREAS = areas_normais + ["Outros"]
 
 
-# --- 4. FUNÇÕES GERAIS ---
+# 4. FUNÇÕES GERAIS
 def tentar_login(registro, senha):
     try:
         resp = supabase.table("tabela_profissional").select("*").eq("registro_profissional", registro).execute()
@@ -237,7 +235,7 @@ def salvar_callback():
         st.error(f"Erro ao salvar: {e}")
 
 
-# --- 6. INICIALIZAÇÃO ---
+# 6. INICIALIZAÇÃO
 if "logado" not in st.session_state: st.session_state["logado"] = False
 if "pagina_gestor" not in st.session_state: st.session_state["pagina_gestor"] = False
 if "idx_nome" not in st.session_state: st.session_state["idx_nome"] = 0
@@ -251,7 +249,7 @@ for k in numeros:
 for k in checks:
     if k not in st.session_state: st.session_state[k] = False
 
-# --- 7. TELA ---
+# 7. TELA
 if not st.session_state["logado"]:
     st.markdown("<h2 style='text-align: center;'>🩺 Triagem SSVV</h2>", unsafe_allow_html=True)
     st.divider()
@@ -267,13 +265,9 @@ if not st.session_state["logado"]:
             else:
                 st.error("Inválido.")
 else:
-    # --- CABEÇALHO REFORMULADO (Mobile Friendly) ---
     is_admin = st.session_state.usuario.get('admin', False)
-
-    # 1. Saudação em Linha Única
     st.write(f"Olá, **{st.session_state.usuario['nome_profissional']}**, a paz de Deus !!!")
 
-    # 2. Botões em Linha Separada (50% / 50%)
     if is_admin:
         c_btn1, c_btn2 = st.columns(2)
         with c_btn1:
@@ -286,11 +280,9 @@ else:
                 st.session_state.pagina_gestor = False
                 st.rerun()
     else:
-        # Se não for admin, botão Sair ocupa largura total
         if st.button("⬅️ Sair"):
             st.session_state.logado = False
             st.rerun()
-
     st.divider()
 
     if st.session_state["pagina_gestor"]:
@@ -344,9 +336,6 @@ else:
             with st.form("form_triagem"):
                 st.markdown("### 🩺 Sinais Vitais")
 
-                # --- LAYOUT VERTICAL PARA MOBILE (Um embaixo do outro) ---
-                # Removi as colunas (c1, c2, c3). Agora cada um ocupa 100% da largura.
-
                 st.number_input("PA (PAS) *", 0, 300, step=1, value=None, placeholder="120", key="pas")
                 st.number_input("PA (PAD) *", 0, 200, step=1, value=None, placeholder="80", key="pad")
 
@@ -358,7 +347,6 @@ else:
 
                 st.markdown("### 📋 Avaliação")
 
-                # Checkboxes também em lista vertical simples
                 st.checkbox("Dormiu bem?", key="dormiu")
                 st.checkbox("Fez desjejum?", key="desjejum")
                 st.checkbox("Uso de medicação (sono)?", key="med_sono")
