@@ -216,7 +216,7 @@ def salvar_callback():
         }
 
         supabase.table("tabela_registros").insert(dados).execute()
-        st.toast(f"✅ Salvo: {dados['voluntario_nome']}", icon="🎉")
+        st.toast(f"✅ Salvo: {dados['voluntario_nome']}", icon="💾")
 
         # Reset
         st.session_state.idx_nome = 0
@@ -256,7 +256,7 @@ if not st.session_state["logado"]:
     with st.container():
         reg = st.text_input("Registro")
         sen = st.text_input("Senha", type="password")
-        if st.button("Entrar"):
+        if st.button("➡️ Entrar"):
             user = tentar_login(reg, sen)
             if user:
                 st.session_state.logado = True
@@ -287,7 +287,7 @@ else:
 
     if st.session_state["pagina_gestor"]:
         st.markdown("### ⚙️ Gestão")
-        if st.button("⬅️ Voltar"):
+        if st.button("↩️ Voltar"):
             st.session_state.pagina_gestor = False
             st.rerun()
         tab1, tab2, tab3 = st.tabs(["🆕 Voluntários", "👩‍⚕️ Profissionais", "📥 Relatórios"])
@@ -302,11 +302,11 @@ else:
             st.checkbox("É Administrador?", key="novo_prof_admin")
             st.button("Cadastrar", on_click=cadastrar_profissional_callback, key="btn_cad_prof")
         with tab3:
-            st.info("Baixe a planilha completa.")
+            st.info("Baixe os registros completo.")
             csv_data = gerar_csv_corrigido()
             if csv_data:
                 hoje = datetime.now().strftime("%d-%m-%Y_%Hh%M")
-                st.download_button(label="📥 Baixar Planilha", data=csv_data, file_name=f"triagem_{hoje}.csv",
+                st.download_button(label="📥 Baixar Triagens", data=csv_data, file_name=f"triagem_{hoje}.csv",
                                    mime="text/csv")
 
     else:
@@ -336,13 +336,13 @@ else:
             with st.form("form_triagem"):
                 st.markdown("### 🩺 Sinais Vitais")
 
-                st.number_input("PA (PAS) *", 0, 300, step=1, value=None, placeholder="120", key="pas")
-                st.number_input("PA (PAD) *", 0, 200, step=1, value=None, placeholder="80", key="pad")
+                st.number_input("Pressão Arterial (PAS) *", 0, 300, step=1, value=None, placeholder="120", key="pas")
+                st.number_input("Pressão Arterial (PAD) *", 0, 200, step=1, value=None, placeholder="80", key="pad")
 
-                st.number_input("FC (bpm) *", 0, 250, step=1, value=None, placeholder="70", key="fc")
-                st.number_input("SpO2 (%) *", 0, 100, step=1, value=None, placeholder="98", key="spo")
+                st.number_input("Frequência Cardíaca (bpm) *", 0, 250, step=1, value=None, placeholder="70", key="fc")
+                st.number_input("Saturação (SpO2 %) *", 0, 100, step=1, value=None, placeholder="98", key="spo")
 
-                st.number_input("Freq. Resp.", 0, 100, step=1, value=None, placeholder="18", key="fr")
+                st.number_input("Frequência Respiratória.", 0, 100, step=1, value=None, placeholder="18", key="fr")
                 st.number_input("Dextro", 0, 600, step=1, value=None, placeholder="100", key="dx")
 
                 st.markdown("### 📋 Avaliação")
@@ -350,11 +350,11 @@ else:
                 st.checkbox("Dormiu bem?", key="dormiu")
                 st.checkbox("Fez desjejum?", key="desjejum")
                 st.checkbox("Uso de medicação (sono)?", key="med_sono")
-                st.checkbox("Tontura/Dor de cabeça?", key="tontura")
+                st.checkbox("Mal estar / Dor de cabeça?", key="tontura")
                 st.checkbox("ASO em dia?", key="aso")
-                st.checkbox("Intercorrência?", key="intercor")
+                st.checkbox("Alguma intercorrência?", key="intercor")
 
-                st.text_area("Observações", key="obs")
+                st.text_area("Observações Gerais", key="obs")
                 st.markdown("### 👩‍⚕️ Parecer")
                 st.radio("Condição: *", ["Apto", "Inapto"], index=None, horizontal=True, key="status")
 
