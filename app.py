@@ -57,7 +57,7 @@ st.markdown("""
         /* 3. CONTROLES ESPECÍFICOS (Selectbox e Number Input) */
         /* Oculta botões +/- nos campos numéricos */
         [data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"] { display: none; }
-        
+
         /* FIX DO FUNDO DO MENU DE OPÇÕES (Troca para Cinza Escuro para Contraste) */
         div[data-baseweb="popover"] {
         background-color: #262730 !important; /* Cinza Escuro para separar do fundo azul */
@@ -81,8 +81,9 @@ st.markdown("""
             background-color: #007bff !important; color: white !important;
             border-radius: 8px; border: none;
         }
-        [data-testid="stFormSubmitButton"] > button {
-            height: 4rem; background-color: #004494 !important; 
+        /* Ajuste para botão primário especificamente */
+        button[kind="primary"] {
+             background-color: #004494 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -350,29 +351,31 @@ else:
             st.session_state["idade_temp"] = idade
             st.info(f"🎂 Idade Voluntário: **{idade} anos**")
 
-            with st.form("form_triagem"):
-                st.markdown("### 🩺 Sinais Vitais")
+            # --- MUDANÇA: REMOVIDO O 'with st.form' ---
+            st.markdown("### 🩺 Sinais Vitais")
 
-                st.number_input("Pressão Arterial (PAS) *", 0, 300, step=1, value=None, placeholder="120", key="pas")
-                st.number_input("Pressão Arterial (PAD) *", 0, 200, step=1, value=None, placeholder="80", key="pad")
+            st.number_input("Pressão Arterial (PAS) *", 0, 300, step=1, value=None, placeholder="120", key="pas")
+            st.number_input("Pressão Arterial (PAD) *", 0, 200, step=1, value=None, placeholder="80", key="pad")
 
-                st.number_input("Frequência Cardíaca (bpm) *", 0, 250, step=1, value=None, placeholder="70", key="fc")
-                st.number_input("Saturação (SpO2 %) *", 0, 100, step=1, value=None, placeholder="98", key="spo")
+            st.number_input("Frequência Cardíaca (bpm) *", 0, 250, step=1, value=None, placeholder="70", key="fc")
+            st.number_input("Saturação (SpO2 %) *", 0, 100, step=1, value=None, placeholder="98", key="spo")
 
-                st.number_input("Frequência Respiratória.", 0, 100, step=1, value=None, placeholder="18", key="fr")
-                st.number_input("Dextro", 0, 600, step=1, value=None, placeholder="100", key="dx")
+            st.number_input("Frequência Respiratória.", 0, 100, step=1, value=None, placeholder="18", key="fr")
+            st.number_input("Dextro", 0, 600, step=1, value=None, placeholder="100", key="dx")
 
-                st.markdown("### 📋 Avaliação")
+            st.markdown("### 📋 Avaliação")
 
-                st.checkbox("Dormiu bem?", key="dormiu")
-                st.checkbox("Fez desjejum?", key="desjejum")
-                st.checkbox("Uso de medicação (sono)?", key="med_sono")
-                st.checkbox("Mal estar / Dor de cabeça?", key="tontura")
-                st.checkbox("ASO em dia?", key="aso")
-                st.checkbox("Alguma intercorrência?", key="intercor")
+            st.checkbox("Dormiu bem?", key="dormiu")
+            st.checkbox("Fez desjejum?", key="desjejum")
+            st.checkbox("Uso de medicação (sono)?", key="med_sono")
+            st.checkbox("Mal estar / Dor de cabeça?", key="tontura")
+            st.checkbox("ASO em dia?", key="aso")
+            st.checkbox("Alguma intercorrência?", key="intercor")
 
-                st.text_area("Observações Gerais", key="obs")
-                st.markdown("### 👩‍⚕️ Parecer")
-                st.radio("Condição: *", ["Apto", "Inapto"], index=None, horizontal=True, key="status")
+            st.text_area("Observações Gerais", key="obs")
+            st.markdown("### 👩‍⚕️ Parecer")
+            st.radio("Condição: *", ["Apto", "Inapto"], index=None, horizontal=True, key="status")
 
-                st.form_submit_button("💾 Salvar Registro", on_click=salvar_callback)
+            st.divider()
+            # Botão normal (fora do form) e azul (primary)
+            st.button("💾 Salvar Registro", on_click=salvar_callback, type="primary")
