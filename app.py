@@ -77,7 +77,7 @@ st.markdown("""
 
         /* 4. BOTÕES E FORM */
         .stButton > button {
-            width: 100%; height: 3.5rem; font-size: 20px !important; font-weight: bold;
+            width: 100%; height: 2.5rem; font-size: 20px !important; font-weight: bold;
             background-color: #007bff !important; color: white !important;
             border-radius: 8px; border: none;
         }
