@@ -5,6 +5,22 @@ from datetime import datetime, date
 import csv
 import io
 
+# --- INICIO DO BLOCO PARA ESCONDER ---
+hide_barras = """
+<style>
+/* Esconde o menu sanduíche no canto superior direito */
+#MainMenu {visibility: hidden;}
+
+/* Esconde o rodapé padrão (Made with Streamlit) */
+footer {visibility: hidden;}
+
+/* Esconde o cabeçalho colorido padrão (caso ainda apareça) */
+header {visibility: hidden;}
+</style>
+"""
+
+st.markdown(hide_barras, unsafe_allow_html=True)
+
 # 1. CONFIGURAÇÃO
 st.set_page_config(page_title="SSMA SSVV", page_icon="🩺", layout="centered", initial_sidebar_state="collapsed")
 
