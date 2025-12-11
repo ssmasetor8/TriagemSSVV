@@ -251,10 +251,11 @@ for k in checks:
 
 # 7. TELA
 if not st.session_state["logado"]:
-    st.markdown("<h2 style='text-align: center;'>🩺 Triagem SSVV</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🩺 SSVV</h2>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>️👩‍⚕️ SSMA Setor 8 </h3>", unsafe_allow_html=True)
     st.divider()
     with st.container():
-        reg = st.text_input("Registro")
+        reg = st.text_input("Usuario")
         sen = st.text_input("Senha", type="password")
         if st.button("➡️ Entrar"):
             user = tentar_login(reg, sen)
